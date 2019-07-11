@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+
+    <title>还车管理</title>
+    <!--引入相关的js文件-->
+    <link href="../backPage/ui/bootstrap-3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="../backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.css" rel="stylesheet"/>
+    <link href="../backPage/ui/waves-0.7.5/waves.css" rel="stylesheet"/>
+    <link href="../backPage/ui/jquery-confirm/jquery-confirm.min.css" rel="stylesheet"/>
+    <link href="../bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+
+    <script src="../backPage/ui/js/jquery-3.3.1.min.js"></script>
+    <script src="../backPage/ui/waves-0.7.5/waves.js"></script>
+    <script src="../backPage/ui/jquery-confirm/jquery-confirm.min.js"></script>
+    <script src="../backPage/ui/bootstrap-3.3.0/js/bootstrap.min.js"></script>
+    <script src="../backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
+</head>
+
+<body>
+<div id="main">
+<!--    <div id="toolbar">-->
+<!--        <button class="btn btn-default" href="javascript:;" onclick="createAction()">新增还车信息</button>-->
+<!--        <button class="btn btn-default" href="javascript:;" onclick="updateAction()">编辑还车信息</button>-->
+<!--        <button class="btn btn-default" href="javascript:;" onclick="deleteAction()">删除还车信息</button>-->
+<!--        <br/>-->
+<!--    </div>-->
+    <table id="table"></table>
+</div>
+
+<script>
+    // 初始化input特效
+    function initMaterialInput() {
+        $('form input[type="text"]').each(function () {
+            if ($(this).val() != '') {
+                $(this).parent().find('label').addClass('active');
+            }
+        });
+    }
+
+    var $table = $('#table');
+
+    $(function() {
+
+        $("#carId").empty();
+        $.ajax({
+            url:"/car?method=find",
+            type:"post",
+            success:function(data){
+                for(var i = 0;i<data.rows.length;i++){
+                    $("#carId").append("<option carName='"+data.rows[i]['carName']+"' value="+data.rows[i]['id']+">"+data.rows[i]['carName']+"</option>")
+                }
+            }
+        });
+
+        $("#driverId").empty();
+        $.ajax({
+            url:"/driver?method=find",
+            type:"post",
+            success:function(data){
+                for(var i = 0;i<data.rows.length;i++){
+                    $("#driverId").append("<option name='"+data.rows[i]['name']+"' value="+data.rows[i]['id']+">"+data.rows[i]['name']+"</option>")
+                }
+            }
+        });
+
+        $("#customerId").empty();
+        $.ajax({
+            url:"/customer?method=find",
+            type:"post",
+            success:function(data){
+                for(var i = 0;i<data.rows.length;i++){
+                    $("#customerId").append("<option name='"+data.rows[i]['name']+"' value="+data.rows[i]['id']+">"+data.rows[i]['name']+"</option>")
+                }
+            }
+        });
+
+        //新增还车信息
+        $("#submitbutton").click(function() {
+            var id = $("#leaseId").val()
+            var carId = $("#carId").val()
+            var carName = $("#carId option[value='"+carId+"']").attr("carName");
+            var driverId = $("#driverId").val()
+            var driverName = $("#driverId option[value='"+driverId+"']").attr("name");
+            var customerId = $("#customerId").val()
+            var customerName = $("#customerId option[value='"+customerId+"']").attr("name");
+            var amount = $("#amount").val()
+            var startTime = $("#startTime").val()
+            var endTime = $("#endTime").val()
+            var isPayment = $("#isPayment").val()
+
+            var url = "/lease?method=";
+
+            if (id != null && id != "")
+            {
+                url += "update&id=" + id;
+            }else{
+                url += "create";
+            }
+
+            url += "&carId="+carId+"&carName="+carName+"&driverId="+driverId+"&driverName="+driverName+
+                "&customerId="+customerId+"&state=0"+"&customerName="+customerName+
+                "&amount="+amount+"&startTime="+startTime+"&endTime="+endTime+"&isPayment="+isPayment;
+
+            $.ajax({
+                url:url,
+                type:"post",
+                contentType: "application/json;charset=UTF-8",
+                success:function(data){
+                    if(data.success == true){
+                        alert("保存成功");
+                        $table.bootstrapTable('refresh');
+                        $('form')[0].reset();
+                        $("#createModal").modal('hide');
+                    }else{
+                        alert("保存失败");
+                    }
+                }
+            })
+
+        })
+
+        // bootstrap table初始化
+        $table.bootstrapTable({
+            url: '/lease?method=find',
+            height: getHeight(),
+            toolbar: '#toolbar',
+            clickToSelect: true,
+            striped: true,
+            showRefresh: true,
+            showColumns: true,
+            minimumCountColumns: 2,
+            paginationLoop: false,
+            sidePagination: 'server',
+            silentSort: false,
+            sortOrder: "desc",
+            smartDisplay: false,
+            escape: true,
+            idField: 'id',
+            maintainSelected: true,
+            columns: [
+                {field: 'id', title: '编号', align: 'center'},
+                {field: 'carName', title: '车辆名称',align: 'center'},
+                {field: 'state', title: '车辆状态',align: 'center',
+                    formatter:function(value, row, index){
+                        if (value == 0)
+                        {
+                            return "已还车";
+                        }else{
+                            return "未还车";
+                        }
+                    }},
+                {field: 'driverName', title: '司机名称',align: 'center'},
+                {field: 'customerName', title: '客户名称',align: 'center'},
+                {field: 'startTime', title: '开始时间',align: 'center'},
+                {field: 'endTime', title: '结束时间',align: 'center'},
+                {field: 'amount', title: '租金',align: 'center'},
+                {field: 'isPayment', title: '是否支付',align: 'center',
+                    formatter:function(value, row, index){
+                        if (value == 0)
+                        {
+                            return "未支付";
+                        }else{
+                            return "已支付";
+                        }
+                    }},
+                {field: 'id', title: '操作', align: 'center', formatter: 'actionFormatter', events: 'actionEvents', clickToSelect: false}
+            ],
+            onLoadError:function (status, res){
+                console.info(status);
+                console.info(res);
+                var url = window.location.protocol + "//" + window.location.host + "/";
+                parent.window.location.href = url;
+            },
+            onLoadSuccess:function (data){
+                console.info(data);
+            },
+        });
+    });
+
+    // 格式化操作按钮
+    function actionFormatter(value, row, index) {
+        return [
+            '<a class="update" href="javascript:;" onclick="updateAction('+index+')">还车</a>　',
+        ].join('');
+    }
+    // 格式化时间
+    function timeFormatter(value , row, index) {
+        return new Date(value).toLocaleString().split(' ')[0];
+    }
+
+    function getHeight() {
+        return $(window).height() - 20;
+    }
+
+    // 删除
+    var deleteDialog;
+    function deleteAction() {
+        var rows = $table.bootstrapTable('getSelections');
+        if (rows.length == 0) {
+            $.confirm({
+                title: false,
+                content: '请至少选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            deleteDialog = $.confirm({
+                type: 'red',
+                animationSpeed: 300,
+                title: false,
+                content: '确认删除该还车信息吗？',
+                buttons: {
+                    confirm: {
+                        text: '确认',
+                        btnClass: 'waves-effect waves-button',
+                        action: function () {
+                            var ids = new Array();
+                            for (var i in rows) {
+                                ids.push(rows[i].id);
+                            }
+
+                            $.ajax({
+                                url:"/lease?method=delete&ids="+ids.join("-"),
+                                type:"post",
+                                contentType: "application/json;charset=UTF-8",
+                                success:function(data){
+                                    if(data.success == true){
+                                        alert("成功");
+                                        $table.bootstrapTable('refresh');
+                                        $('form')[0].reset();
+                                        $("#createModal").modal('hide');
+                                    }else{
+                                        alert("失败");
+                                    }
+                                },
+                                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                    $.confirm({
+                                        theme: 'dark',
+                                        animation: 'rotateX',
+                                        closeAnimation: 'rotateX',
+                                        title: false,
+                                        content: textStatus,
+                                        buttons: {
+                                            confirm: {
+                                                text: '确认',
+                                                btnClass: 'waves-effect waves-button waves-light'
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        }
+    }
+
+    //创建还车信息
+    function createAction(){
+        $("#createModal").modal("show");
+    }
+
+    //编辑还车信息
+    function updateAction(index) {
+        // var rows = $table.bootstrapTable('getSelections');
+        var rows = $table.bootstrapTable('getData');
+        if (rows.length == 0) {
+            $.confirm({
+                title: false,
+                content: '请至少选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            //赋初值
+            var obj = rows[index];
+            var leaseId = obj["id"];
+            var carId = obj["carId"];
+            var driverId = obj["driverId"];
+            var customerId = obj["customerId"];
+            var amount = obj["amount"];
+            var startTime = obj["startTime"];
+            var endTime = obj["endTime"];
+            var isPayment = obj["isPayment"];
+
+            $("#leaseId").val(leaseId);
+            $("#carId").val(carId);
+            $("#driverId").val(driverId);
+            $("#customerId").val(customerId);
+            $("#amount").val(amount);
+            $("#startTime").val(startTime.substring(0,10));
+            $("#endTime").val(endTime.substring(0,10));
+            $("#isPayment").val(isPayment);
+
+            $("#createModal").modal("show");
+            $('#createModal').on('hide.bs.modal', function () {
+                $('form')[0].reset();
+            });
+        }
+    }
+
+</script>
+
+<!-- 保存还车信息模态框（Modal） -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="createModalTitle">
+                    保存还车信息
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <input hidden id="leaseId" />
+
+                    <div class="form-group">
+                        <label for="carId">车辆</label>
+                        <select class="form-control" id="carId" disabled="disabled"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="driverId">司机</label>
+                        <select class="form-control" id="driverId" disabled="disabled"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerId">客户</label>
+                        <select class="form-control" id="customerId" disabled="disabled"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">租金</label>
+                        <input type="number" class="form-control" id="amount" placeholder="租金">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startTime">开始时间</label>
+                        <input type="date" class="form-control" id="startTime" disabled="disabled">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endTime">结束时间</label>
+                        <input type="date" class="form-control" id="endTime">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="isPayment">是否支付</label>
+                        <select type="text" class="form-control" id="isPayment">
+                            <option value="0" selected>未支付</option>
+                            <option value="1">已支付</option>
+                        </select>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                </button>
+                <button type="button" class="btn btn-primary" id="submitbutton">
+                    保存
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+</body>
+</html>

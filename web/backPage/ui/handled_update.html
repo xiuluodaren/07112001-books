@@ -1,0 +1,86 @@
+<div id="updateDialog" class="crudDialog">
+    <form id="updateForm" method="post">
+        <label>移动状态</label>
+        <div class="form-group">
+
+        </div>
+
+        <div>处理员工编号</div>
+        <div class="form-group">
+            <input id="movepeople" type="number" style="border-bottom: #0f0f0f solid 1px;"  class="form-control" name="movepeople" value="${cpmCarWarning.movepeople}"/>
+        </div>
+
+        <div class="form-group text-right dialog-buttons">
+            <a class="waves-effect waves-button" href="javascript:;" onclick="createSubmit();">保存</a>
+            <a class="waves-effect waves-button" href="javascript:;" onclick="updateDialog.close();">取消</a>
+        </div>
+    </form>
+</div>
+    <script>
+        function createSubmit() {
+            $.ajax({
+                type: 'post',
+                url: '/supervisor/handled/update/${warnninginfo.warnningid}',
+                data: $('#updateForm').serialize(),
+                beforeSend: function() {
+                    if ($('#name').val() == '') {
+                        $('#name').focus();
+                        return false;
+                    }
+                },
+                success: function(result) {
+                    if (result.code != 1) {
+                        if (result.data instanceof Array) {
+                            $.each(result.data, function(index, value) {
+                                $.confirm({
+                                    theme: 'dark',
+                                    animation: 'rotateX',
+                                    closeAnimation: 'rotateX',
+                                    title: false,
+                                    content: value.errorMsg,
+                                    buttons: {
+                                        confirm: {
+                                            text: '确认',
+                                            btnClass: 'waves-effect waves-button waves-light'
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            $.confirm({
+                                theme: 'dark',
+                                animation: 'rotateX',
+                                closeAnimation: 'rotateX',
+                                title: false,
+                                content: result.data.errorMsg,
+                                buttons: {
+                                    confirm: {
+                                        text: '确认',
+                                        btnClass: 'waves-effect waves-button waves-light'
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        updateDialog.close();
+                        $table.bootstrapTable('refresh');
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $.confirm({
+                        theme: 'dark',
+                        animation: 'rotateX',
+                        closeAnimation: 'rotateX',
+                        title: false,
+                        content: textStatus,
+                        buttons: {
+                            confirm: {
+                                text: '确认',
+                                btnClass: 'waves-effect waves-button waves-light'
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    </script>

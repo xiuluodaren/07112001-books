@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<!doctype html>
+
+<html>
+<head>
+
+    <meta charset="utf-8">
+
+    <title>Bootstrap Table的demo</title>
+    <!--引入相关的js文件-->
+    <link href="/backPage/ui/bootstrap-3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.css" rel="stylesheet"/>
+    <link href="/backPage/ui/waves-0.7.5/waves.css" rel="stylesheet"/>
+    <link href="/backPage/ui/jquery-confirm/jquery-confirm.min.css" rel="stylesheet"/>
+
+
+    <script src="/backPage/ui/js/jquery-3.3.1.min.js"></script>
+    <script src="/backPage/ui/waves-0.7.5/waves.js"></script>
+    <script src="/backPage/ui/jquery-confirm/jquery-confirm.min.js"></script>
+    <script src="/backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
+</head>
+
+<body>
+<div id="main">
+    <div id="toolbar">
+        <button class="btn btn-default" href="javascript:;" onclick="updateAction()">编辑报警信息</button>
+        <button class="btn btn-default" href="javascript:;" onclick="deleteAction()">删除报警信息</button>
+        <button class="btn btn-default" href="javascript:;" onclick="detailAction()">查看报警详情</button>
+    </div>
+    <table id="table"></table>
+</div>
+
+<script>
+    // 初始化input特效
+    function initMaterialInput() {
+        $('form input[type="text"]').each(function () {
+            if ($(this).val() != '') {
+                $(this).parent().find('label').addClass('active');
+            }
+        });
+    }
+
+    var $table = $('#table');
+    $(function() {
+        // bootstrap table初始化
+        $table.bootstrapTable({
+            url: '/supervisor/unhandled/list',
+            height: getHeight(),
+            toolbar: '#toolbar',
+            striped: true,
+            search: true,
+            showRefresh: true,
+            showColumns: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+
+            detailFormatter: 'detailFormatter',
+            pagination: true,
+            paginationLoop: false,
+            sidePagination: 'server',
+            silentSort: false,
+            smartDisplay: false,
+            escape: true,
+            searchOnEnterKey: true,
+            idField: 'warnningid',
+            maintainSelected: true,
+            toolbar: '#toolbar',
+            columns: [
+                {field: 'ck', checkbox: true},
+                {field: 'warnningid', title: '报警信息编号', sortable: true, align: 'center'},
+                {field: 'warnningvalue', title: '报警内容'},
+                {field: 'warnningtime', title: '报警时间', formatter: 'timeFormatter'},
+                {field: 'warnningstate', title: '接受状态'},
+                {field: 'warnningcheckstate', title: '处理情况'},
+                {field: 'warnningimginfo', title: '报警图片信息', align: 'center'},
+                {field: 'action', title: '操作', align: 'center', formatter: 'actionFormatter', events: 'actionEvents', clickToSelect: false}
+            ]
+        });
+    });
+    // 格式化操作按钮
+    function actionFormatter(value, row, index) {
+        return [
+            '<a class="update" href="javascript:;" onclick="updateAction()" data-toggle="tooltip" title="Edit"><i class="glyphicon glyphicon-edit"></i></a>　',
+            '<a class="delete" href="javascript:;" onclick="deleteAction()" data-toggle="tooltip" title="Remove"><i class="glyphicon glyphicon-remove"></i></a>',
+            '<a class="detail" href="javascript:;" onclick="detailAction()" data-toggle="tooltip" title="Detail" target="_blank"><i class="glyphicon glyphicon-arrow-up"></i></a>'
+        ].join('');
+    }
+    // 格式化时间
+    function timeFormatter(value , row, index) {
+        return new Date(value).toLocaleString();
+    }
+
+    function getHeight() {
+        return $(window).height() - 20;
+    }
+    // 编辑
+    var updateDialog;
+    function updateAction() {
+        var rows = $table.bootstrapTable('getSelections');
+        if (rows.length != 1) {
+            $.confirm({
+                title: false,
+                content: '请选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            updateDialog = $.dialog({
+                animationSpeed: 300,
+                title: '修改处理状态信息',
+                content: 'url:/supervisor/handled/update/' + rows[0].warnningid,
+                onContentReady: function () {
+                    $table.bootstrapTable('refresh');
+                }
+            });
+        }
+    }
+    // 删除
+    var deleteDialog;
+    function deleteAction() {
+        var rows = $table.bootstrapTable('getSelections');
+        if (rows.length == 0) {
+            $.confirm({
+                title: false,
+                content: '请至少选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            deleteDialog = $.confirm({
+                type: 'red',
+                animationSpeed: 300,
+                title: false,
+                content: '确认删除该报警信息吗？',
+                buttons: {
+                    confirm: {
+                        text: '确认',
+                        btnClass: 'waves-effect waves-button',
+                        action: function () {
+                            var ids = new Array();
+                            for (var i in rows) {
+                                ids.push(rows[i].warnningid);
+                            }
+                            $.ajax({
+                                type: 'get',
+                                url: '/supervisor/delete/' + ids.join("-"),
+                                success: function(result) {
+                                    if(result){
+                                        deleteDialog.close();
+                                        $table.bootstrapTable('refresh');
+                                        alert("删除成功");
+                                    }else{
+                                        alert("删除失败");
+                                    }
+                                },
+                                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                    $.confirm({
+                                        theme: 'dark',
+                                        animation: 'rotateX',
+                                        closeAnimation: 'rotateX',
+                                        title: false,
+                                        content: textStatus,
+                                        buttons: {
+                                            confirm: {
+                                                text: '确认',
+                                                btnClass: 'waves-effect waves-button waves-light'
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        }
+    }
+
+    var detailDialog;
+    function detailAction(){
+        var rows = $table.bootstrapTable('getSelections');
+        if (rows.length == 0) {
+            $.confirm({
+                title: false,
+                content: '请至少选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            detailDialog = $.dialog({
+                animationSpeed: 300,
+                title: '查看详情',
+                //content: 'url:/detail/' + rows[0].warnningid,
+                onContentReady: function () {
+                    window.location.href = "/ImagesManage/detail/"+rows[0].warnningid;
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

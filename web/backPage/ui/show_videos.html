@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>图片展示</title>
+    <link rel="stylesheet" href="/backPage/ui/css/FTP.css"/>
+    <link rel="stylesheet" href="/backPage/ui/css/bootstrap.css"/>
+    <script src="/backPage/ui/js/Pagination.js"></script>
+</head>
+<body>
+<div class="show_content" style="height: 720px; width:98%; margin:0px;">
+    <ul class="show col-md-12" style="height:95%; margin:0px;">
+        <li><img src="" class="col-md-3"/></li>
+    </ul>
+    <div class="pagination" id="pagination" style="margin-top:50px;"></div>
+</div>
+
+<script>
+    window.onload = function () {
+        new Page({
+            id: 'pagination',
+            pageTotal: 5, //,总页数
+            pageAmount: 8,  //每页多少条
+            dataTotal: 40, //总共多少条数据
+            curPage:1, //初始页码,不填默认为1
+            pageSize: 5, //分页个数,不填默认为5
+            showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+            showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+            getPage: function (page) {
+                //获取当前页数
+                console.log(page);
+            }
+        })
+    }
+</script>
+</body>
+</html>

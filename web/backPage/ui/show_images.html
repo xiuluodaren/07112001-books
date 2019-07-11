@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>图片展示</title>
+    <link rel="stylesheet" href="/backPage/ui/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/backPage/ui/css/FTP.css"/>
+    <link rel="stylesheet" href="/backPage/ui/css/demo.css" type="text/css"/>
+    <link rel="stylesheet" href="/backPage/ui/css/zTreeStyle/zTreeStyle.css" type="text/css"/>
+    <link rel="stylesheet" href="/dist/css/viewer.min.css"/>
+
+    <script src="/backPage/ui/js/Pagination.js"></script>
+    <script src="/backPage/ui/js/jquery-1.12.4.js"></script>
+    <script src="/dist/js/viewer.min.js"></script>
+    <script type="text/javascript" src="/backPage/ui/js/jquery.ztree.core.js"></script>
+</head>
+<body>
+<div class="container-fluid" >
+<div class="tree col-md-3 col-xs-12 ztree" id="treeDemo" style="overflow: auto;"></div>
+<div class="show_content col-md-9 col-xs-12" style="overflow: auto;">
+    <ul class="show" id="image_ul" style="overflow: auto;">
+
+    </ul>
+</div>
+</div>
+<div class="pagination" id="pagination"></div>
+<script>
+    var rootPath = "";
+    function getRootPath(){
+        $.ajax({
+            url:"/operator/getFileRootPath",
+            type:"post",
+            success:function(data){
+                rootPath = data;
+            }
+        });
+    }
+    $(function(){
+            getRootPath();
+            rootPath = rootPath + "\\";
+            var setting = {    //设置ztree相关属性
+                isSimpleData : true,              //数据是否采用简单 Array 格式，默认false  
+                treeNodeKey : "id",               //在isSimpleData格式下，当前节点id属性  
+                treeNodeParentKey : "pId",        //在isSimpleData格式下，当前节点的父节点id属性  
+                showLine: true,
+                checkable: false,
+
+                callback:{ //回调函数,给每个节点绑定事件  
+                    beforeClick: getCurrentNode,
+                    onClick : zTreeOnClick
+                }
+            };
+
+        //jQuery ztree 给每个节点绑定事件  
+        function getCurrentNode(leftTree, treeNode) {
+            curNode = treeNode;
+            zTreeOnClick(curNode);
+        }
+
+
+        var pathName = "";
+        var page_Amount;
+        var pageparam = new Page({
+            id: 'pagination',
+            pageTotal: 1||page_Amount, //,总页数
+            pageAmount: 8,  //每页多少条
+            dataTotal: 1, //总共多少条数据
+            curPage:1, //初始页码,不填默认为1
+            pageSize: 8, //分页个数,不填默认为5
+            showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+            showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+            getPage: function (page) {
+                //获取当前页数
+                //console.log(page);
+            }
+        })
+
+        function zTreeOnClick(treeNode){
+            //alert(treeNode["level"]);
+            if(treeNode["name"].indexOf("jpg")>0 ||treeNode["name"].indexOf("dav")>0 ){
+                //alert("文件:"+treeNode["name"]);
+            }else{
+                pathName = "";
+                getPath(treeNode);
+                alert(pathName);
+                $.ajax({
+                    url:"/operator/getImagesByDerictory",
+                    type:"post",
+                    data:{path:pathName},
+                    success:function(data){
+                        //alert(JSON.stringify(data));
+                        if(!(JSON.stringify(data) == "[]" || JSON.stringify(data) == "")){
+                            var count = data.length;
+                            if(count %  8 == 0){
+                                page_Amount = parseInt(count / 8);
+                            }else if(count == 0){
+                                page_Amount = 1;
+                            }else{
+                                page_Amount = parseInt(count / 8) + 1
+                            }
+
+                            pageparam = new Page({
+                                id: 'pagination',
+                                pageTotal: page_Amount, //,总页数
+                                pageAmount: 8,  //每页多少条
+                                dataTotal: count, //总共多少条数据
+                                curPage:1, //初始页码,不填默认为1
+                                pageSize: 8, //分页个数,不填默认为5
+                                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                                getPage: function (page) {
+                                    //获取当前页数
+                                    //console.log(page);
+                                    //跳转页面
+                                    var ul_image = $("#image_ul");
+                                    ul_image.find("li").remove();
+                                    var j = 0;
+                                    for(var i = (page - 1) * 8;i<count;i++){
+                                        data[i] = data[i].replace(rootPath,"/Path/");
+                                        data[i] = data[i].replace("D:\\","../../");
+                                        var name = data[i].split("\\");
+                                        var imgname = name[name.length - 1];
+                                        ul_image.append("<li style=\" text-align: center;\" class=\"col-md-3 col-xs-12 show_img\">" +
+                                            "            <img src="+data[i]+"/>" +
+                                            "            <span style=\"display: inline-block;\">"+imgname+"</span>" +
+                                            "        </li>");
+                                        j++;
+                                        if(j == 8 || i > count){
+                                            break;
+                                        }
+                                    }
+                                    ul_image.viewer("update");
+                                }
+                            })
+
+                           // alert("测试");
+                            //查看文件夹中的图片
+                            var ul_image = $("#image_ul");
+                            ul_image.find("li").remove();
+                            var j = 0;
+                            for(var i = (pageparam.curPage - 1) * 8;i<count;i++){
+                                //data[i] = data[i].replace("D:\\FtpRoot\\","/Path/");
+                                data[i] = data[i].replace(rootPath,"/Path/");
+                                data[i] = data[i].replace("D:\\","../../");
+                                var name = data[i].split("\\");
+                                var imgname = name[name.length - 1];
+                                ul_image.append("<li style=\" text-align: center;\" class=\"col-md-3 show_img\">" +
+                                    "            <img src="+data[i]+"/>" +
+                                    "            <span style=\"display: inline-block;\">"+imgname+"</span>" +
+                                    "        </li>");
+                                j++;
+                                if(j == 8 || i > count){
+                                    break;
+                                }
+                            }
+                            $("#image_ul").viewer("update");
+                        }else{
+                            alert("当前直接层级路径没有图片");
+                        }
+                    }
+                });
+            }
+        }
+
+        function getPath(treeNode){
+            pathName = treeNode["name"] +"\\"+ pathName;
+            if(treeNode["level"]>0){
+                getPath(treeNode.getParentNode(),pathName);
+            }else{
+                return;
+            }
+        }
+
+        $.ajax({
+            url:"/operator/getImagesPathNameByTree",
+            type:"post",
+            success:function(data){
+                data = $.parseJSON(data)
+                zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, data);
+            }
+        });
+
+        $(".show_img").each(function(){
+            $(this).click(function(){
+                alert($(this));
+            })
+        })
+
+    })
+</script>
+</body>
+</html>

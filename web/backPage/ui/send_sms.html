@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>Title</title>
+    <link rel="stylesheet" href="/backPage/ui/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/backPage/ui/css/send_sms.css"/>
+    <script src="/backPage/ui/js/jquery-1.12.4.js"></script>
+</head>
+<body>
+    <div class="container" id="content_box">
+        <form>
+            <div class="form-group">
+                <label for="username">username</label>
+                <input type="text" class="form-control" name = "username" id="username" value="quanluhy" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <label for="password">password</label>
+                <input type="password" class="form-control" id="password" name="password" value="VHVb8X" placeholder="Password">
+            </div>
+
+            <div class="form-group">
+                <label for="mobile">mobile</label>
+                <input type="text" class="form-control" id="mobile" name="mobile" placeholder="请输入电话号码">
+            </div>
+
+            <div class="form-group">
+                <label for="content">content</label>
+                <input type="text" class="form-control" id="content" name="content" placeholder="请输入发送内容">
+            </div>
+
+            <button type="button" class="btn btn-default" id="submit_Button">发送</button>
+        </form>
+    </div>
+</body>
+<script>
+    $(function(){
+        $("#submit_Button").click(function(){
+            var username = $("#username").val();
+            var password = $("#password").val();
+            var mobile = $("#mobile").val();
+            var content = $("#content").val();
+            var res = {username:username,password:password,mobile:mobile,content:content};
+              $.ajax({
+                  url:"/operator/send_sms",
+                  type:"post",
+                  data:res,
+                  success:function(data){
+                      alert(data);
+                }
+              })
+        })
+    })
+</script>
+</html>

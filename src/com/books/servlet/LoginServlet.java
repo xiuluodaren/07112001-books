@@ -67,7 +67,7 @@ public class LoginServlet extends HttpServlet {
                 Connection conn = JDBCConnection.getConnection();
 
                 // 创建sql语句
-                String sql = "SELECT id,username,PASSWORD,type FROM [user] where username = ? and password = ? ORDER BY id";
+                String sql = "SELECT id,username,PASSWORD,type FROM user where username = ? and password = ? ORDER BY id";
                 // 编译sql语句
                 PreparedStatement pst = null;
                 pst = conn.prepareStatement(sql);

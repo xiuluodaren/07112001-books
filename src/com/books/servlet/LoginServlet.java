@@ -46,7 +46,7 @@ public class LoginServlet extends HttpServlet {
             String newPassword = request.getParameter("newPassword");
             User user = (User) request.getSession().getAttribute("user");
 
-            String sql = "UPDATE [user] SET  [password] = ? WHERE [id] = ?;";
+            String sql = "UPDATE user SET  password = ? WHERE id = ?;";
             JDBCConnection.execute(sql, newPassword, String.valueOf(user.getId()));
 
             resultMap.put("success",true);

@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+<%--
+  Created by IntelliJ IDEA.
+  User: pc
+  Date: 2019/7/12
+  Time: 12:26
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
 <head>
-
-    <meta charset="utf-8">
-
-    <title>车辆类型管理</title>
-    <!--引入相关的js文件-->
+    <title>图书管理</title>
     <link href="../backPage/ui/bootstrap-3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="../backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.css" rel="stylesheet"/>
     <link href="../backPage/ui/waves-0.7.5/waves.css" rel="stylesheet"/>
@@ -19,32 +21,23 @@
     <script src="../backPage/ui/bootstrap-3.3.0/js/bootstrap.min.js"></script>
     <script src="../backPage/ui/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
 </head>
-
 <body>
 <div id="main">
     <div id="toolbar">
-        <button class="btn btn-default" href="javascript:;" onclick="createAction()">新增车辆类型信息</button>
-        <button class="btn btn-default" href="javascript:;" onclick="updateAction()">编辑车辆类型信息</button>
-        <button class="btn btn-default" href="javascript:;" onclick="deleteAction()">删除车辆类型信息</button>
+        <button class="btn btn-default" href="javascript:;" onclick="createAction()">新增</button>
+        <button class="btn btn-default" href="javascript:;" onclick="updateAction()">编辑</button>
+        <button class="btn btn-default" href="javascript:;" onclick="deleteAction()">删除</button>
         <br/>
     </div>
     <table id="table"></table>
 </div>
 
 <script>
-    // 初始化input特效
-    function initMaterialInput() {
-        $('form input[type="text"]').each(function () {
-            if ($(this).val() != '') {
-                $(this).parent().find('label').addClass('active');
-            }
-        });
-    }
 
     var $table = $('#table');
 
     $(function() {
-        //新增车辆类型信息
+        //新增
         $("#submitbutton").click(function() {
             var id = $("#typeId").val()
             var typeName = $("#typeName").val()
@@ -151,7 +144,7 @@
                 type: 'red',
                 animationSpeed: 300,
                 title: false,
-                content: '确认删除该车辆类型信息吗？',
+                content: '确认删除该吗？',
                 buttons: {
                     confirm: {
                         text: '确认',
@@ -203,12 +196,12 @@
         }
     }
 
-    //创建车辆类型信息
+    //创建
     function createAction(){
         $("#createModal").modal("show");
     }
 
-    //编辑车辆类型信息
+    //编辑
     function updateAction() {
         var rows = $table.bootstrapTable('getSelections');
         if (rows.length == 0) {
@@ -242,7 +235,7 @@
 
 </script>
 
-<!-- 保存车辆类型信息模态框（Modal） -->
+<!-- 模态框（Modal） -->
 <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -251,7 +244,7 @@
                     &times;
                 </button>
                 <h4 class="modal-title" id="createModalTitle">
-                    保存车辆类型信息
+                    保存
                 </h4>
             </div>
             <div class="modal-body">

@@ -36,7 +36,7 @@ public class IndexServlet extends HttpServlet {
             return;
         }
 
-        String sql = "SELECT id,menuName,menuPath FROM [menu]";
+        String sql = "SELECT id,menuName,menuPath FROM menu order by sort";
         ResultSet resultSet = JDBCConnection.query(sql, null);
 
         List<Menu> menuList = new ArrayList<>();

@@ -120,7 +120,7 @@ public class LeaseServlet extends HttpServlet {
         ResponseUtil.writeResponse(response,resultMap);
     }
 
-    //查询租赁信息
+    //查询图书管理信息
     private Map findLease(String isPayment,String startTime, String endTime) {
 
         String sql = "SELECT id,carId,carName,driverId,driverName,state," +
@@ -150,7 +150,7 @@ public class LeaseServlet extends HttpServlet {
         try {
             while (resultSet.next())
             {
-                //构造一个租赁对象
+                //构造一个图书管理对象
                 Lease lease = new Lease();
                 lease.setId(resultSet.getLong(1));
                 lease.setCarId(resultSet.getLong(2));
@@ -182,7 +182,7 @@ public class LeaseServlet extends HttpServlet {
         return map;
     }
 
-    //创建租赁信息
+    //创建图书管理信息
     private Map createLease(String[] params) {
 
         String sql = "INSERT INTO [lease] ( [carId], [carName], [driverId], [driverName], [customerId], [customerName], [state], [startTime], [endTime], [amount], [isPayment])" +
@@ -196,7 +196,7 @@ public class LeaseServlet extends HttpServlet {
         return EasyUIResult.result(execute);
     }
 
-    //更新租赁信息
+    //更新图书管理信息
     private Map updateLease(Map<String,Object> params) {
 
         //构造一个字符串数组,大小和参数键值对数量相同
@@ -231,7 +231,7 @@ public class LeaseServlet extends HttpServlet {
         return EasyUIResult.result(execute);
     }
 
-    //删除租赁信息
+    //删除图书管理信息
     private Map deleteLease(String ids) {
 
         for (String id : ids.split("-")) {
